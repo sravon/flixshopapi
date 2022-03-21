@@ -119,6 +119,50 @@ class AuthController extends Controller
         //
     }
 
+    public function loginuser(Request $request){
+        $phone = $request->phone;
+        $password = $request->password;
+
+        $validator = Validator::make($request->all(),[
+            'phone' => 'required|numeric|digits:11',
+            'password' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return response($validator->errors()->first(), 201);
+        }
+        
+        $user = User::where('phone',$phone)->first();
+        if ($user) {
+            if (Hash::check($password, $user->password)) {
+                $token = $user->createToken('Laravel grant Client')->accessToken;
+                return response([
+                    'user' => $user,
+                    'token' => $token
+                ], 200);
+            } else {
+                return response("Password not foumnd", 201);
+            }
+            
+        }else{
+            return response("user not found", 201);
+        }
+    }
+
+    public function logout(){
+        $token = Auth::user()->token();
+        return $token->revoke();
+    }
+
+    public function login_userdata(){
+        $user = Auth::user();
+        if($user){
+            return response($user, 200);
+        }else{
+            return response("user not found", 201);
+        }
+    }
+
     
 
 }
